@@ -139,29 +139,8 @@ function freshMic() {
   };
 }
 
-function wrapWords(root) {
-  if (!root) return;
-  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach((node) => {
-    if (node.parentElement && node.parentElement.classList.contains("w")) return;
-    if (node.parentElement && node.parentElement.closest(".wish, .cake-angel, .cake-count")) return;
-    if (!node.textContent.trim()) return;
-    const frag = document.createDocumentFragment();
-    node.textContent.split(/\s+/).filter(Boolean).forEach((word) => {
-      const span = document.createElement("span");
-      span.className = "w";
-      span.textContent = word;
-      frag.appendChild(span);
-    });
-    node.parentNode.replaceChild(frag, node);
-  });
-}
-
 function setHint(text) {
   els.hint.textContent = text;
-  wrapWords(els.hint);
 }
 
 function updateHint() {
@@ -231,9 +210,6 @@ function mountView(view) {
   paintSprinkles();
   positionDoors();
   updateCandleCount();
-  wrapWords(els.sheetLeft);
-  wrapWords(els.sheetRight);
-  wrapWords(els.sheetSingle);
   const wish = document.getElementById("birthdayWish");
   if (wish) {
     wish.textContent =
@@ -277,11 +253,10 @@ function scaleCake() {
   const cake = document.getElementById("cake");
   if (!cake) return;
   const host = cake.closest(".cake-page");
-  if (!host) return;
-
-  const pad = 16;
-  const availW = Math.max(120, host.clientWidth - pad);
-  const availH = Math.max(120, host.clientHeight - pad);
+  const availW = Math.max(140, (host?.clientWidth || window.innerWidth) - 24);
+  const availH = isMobile()
+    ? Math.max(180, Math.min(260, window.innerHeight * 0.36))
+    : Math.max(140, (host?.clientHeight || 250) - 16);
   const scale = Math.min(1, availW / 290, availH / 250);
   cake.style.setProperty("--cake-scale", String(scale));
 }
@@ -305,16 +280,10 @@ function stripIds(html) {
 function animateTurn(from, to, forward, token) {
   const fromView = getView(from);
   const toView = getView(to);
-  const mobile = isMobile();
 
-  if (prefersReduced()) return Promise.resolve();
+  if (isMobile() || prefersReduced()) return Promise.resolve();
 
-  if (mobile) {
-    els.flipFront.innerHTML = stripIds(fromView.single);
-    els.flipBack.innerHTML = stripIds(toView.single);
-    els.flipper.classList.add("is-forward");
-    els.flipper.classList.remove("is-back");
-  } else if (forward) {
+  if (forward) {
     els.flipFront.innerHTML = stripIds(fromView.right);
     els.flipBack.innerHTML = stripIds(toView.left);
     els.flipper.classList.add("is-forward");
@@ -329,8 +298,7 @@ function animateTurn(from, to, forward, token) {
   els.flipper.classList.add("is-active");
   void els.flipper.offsetWidth;
 
-  if (mobile) els.sheetSingle.innerHTML = toView.single;
-  else if (forward) els.sheetRight.innerHTML = toView.right;
+  if (forward) els.sheetRight.innerHTML = toView.right;
   else els.sheetLeft.innerHTML = toView.left;
 
   void els.flipper.offsetWidth;
@@ -620,7 +588,6 @@ function showMilestone(count) {
 
   note.hidden = false;
   note.textContent = text;
-  wrapWords(note);
   const persist = (count >= 29 && count <= 33) || (count >= 35 && count <= 42) || count >= 43;
   if (persist) return;
   window.setTimeout(() => {
@@ -1010,6 +977,4 @@ if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(relayout);
 }
 
-wrapWords(els.cover);
-wrapWords(document.querySelector(".tools"));
 updateChrome();

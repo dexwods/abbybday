@@ -15,7 +15,6 @@ body {
   background: #f3eee4;
   color: #3a332c;
   font-family: Georgia, "Palatino Linotype", Palatino, "Times New Roman", serif;
-  word-spacing: 0.28em;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
 }
@@ -138,7 +137,6 @@ img {
   position: relative;
   max-width: 8em;
   font-family: Georgia, "Palatino Linotype", Palatino, serif;
-  word-spacing: 0.28em;
   font-size: clamp(30px, 4vw, 42px);
   font-weight: 600;
   line-height: 1.12;
@@ -261,46 +259,21 @@ img {
   font-family: Georgia, "Palatino Linotype", Palatino, "Times New Roman", serif;
   font-size: clamp(20px, 2.2vw, 28px);
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.5;
   letter-spacing: 0.01em;
-  word-spacing: 0.28em;
   white-space: normal;
   overflow-wrap: break-word;
   color: #3a332c;
 }
 
-.prose p:not(.wish),
-.birthday,
-.hint,
-.milestone,
-.angel-note,
-.soft-btn,
-.cover__title,
-.cake-count,
-.cake-surprise {
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 0.38em;
-  row-gap: 0.12em;
-}
-
-.w {
-  display: inline-block;
-}
-
-.prose p:not(.wish),
+.prose p,
 .birthday {
   margin: 0;
   color: inherit;
 }
 
-.prose p.wish {
-  display: block;
-  margin: 0;
-}
-
 .prose p + p {
-  margin-top: 1em;
+  margin-top: 0.9em;
 }
 
 .prose:focus {
@@ -314,7 +287,6 @@ img {
 
 .birthday {
   font-family: Georgia, "Palatino Linotype", Palatino, serif;
-  word-spacing: 0.28em;
   font-size: clamp(32px, 4vw, 48px);
   font-weight: 600;
   line-height: 1.15;
@@ -326,7 +298,6 @@ img {
   max-width: 22em;
   font-size: 0.78em;
   line-height: 1.5;
-  word-spacing: 0.12em;
 }
 
 .art {
@@ -551,7 +522,6 @@ img {
 .cake-count,
 .cake-surprise {
   margin: 0;
-  word-spacing: 0.28em;
   color: #3f3454;
 }
 
@@ -813,7 +783,6 @@ img {
   text-align: center;
   font-size: clamp(20px, 2.6vw, 26px);
   line-height: 1.4;
-  word-spacing: 0.28em;
   color: #3f3454;
   background: #efe6f4;
   border-radius: 22px;
@@ -835,9 +804,8 @@ img {
   max-width: 28em;
   padding: 10px 18px;
   text-align: center;
-  font-size: clamp(22px, 3.2vw, 28px);
+  font-size: clamp(18px, 3.2vw, 26px);
   line-height: 1.35;
-  word-spacing: 0.28em;
   color: #4a3f58;
   background: rgba(255, 250, 244, 0.72);
   border-radius: 18px;
@@ -869,16 +837,18 @@ img {
 }
 
 .soft-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 22px;
   border: 0;
   border-radius: 999px;
   background: #efe6f4;
   color: #3f3454;
   font-family: Georgia, "Palatino Linotype", Palatino, serif;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  word-spacing: 0.28em;
   cursor: pointer;
   box-shadow: 0 8px 20px rgba(63, 52, 84, 0.12);
 }
@@ -975,21 +945,25 @@ img {
 .book.is-mobile.is-open .frame,
 .book.is-mobile.is-opening .frame,
 .book.is-mobile.is-closing .frame {
-  width: min(460px, calc(100vw - 28px));
+  width: min(520px, calc(100vw - 20px));
   height: auto;
   min-height: 0;
 }
 
 .book.is-mobile:not(.is-open):not(.is-opening):not(.is-closing) .frame {
-  height: min(480px, 72vh);
-  height: min(480px, 72dvh);
+  height: min(480px, 68vh);
+  height: min(480px, 68dvh);
 }
 
 .book.is-mobile .spread {
+  display: block;
   height: auto;
-  min-height: 70vh;
-  min-height: 70dvh;
-  grid-template-columns: 1fr;
+  min-height: 0;
+}
+
+.book.is-mobile .sheet,
+.book.is-mobile .sheet--single {
+  overflow: visible;
 }
 
 .book.is-mobile .sheet--left,
@@ -999,27 +973,64 @@ img {
 }
 
 .book.is-mobile .sheet--single {
-  display: block;
-  min-height: 70vh;
-  min-height: 70dvh;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .book.is-mobile .art {
-  height: min(52vh, 440px);
-  height: min(52dvh, 440px);
-}
-
-.book.is-mobile .prose {
   height: auto;
-  padding: 8px 22px 28px;
+  flex: 0 0 auto;
+  padding: 16px 16px 4px;
 }
 
-.book.is-mobile .flipper.is-forward,
-.book.is-mobile .flipper.is-back {
-  left: 0;
-  right: auto;
+.book.is-mobile .art img {
   width: 100%;
-  transform-origin: left center;
+  height: auto;
+  max-height: 42dvh;
+  object-fit: contain;
+}
+
+.book.is-mobile .prose,
+.book.is-mobile .text-stack {
+  height: auto;
+  flex: 0 0 auto;
+  padding: 12px 22px 28px;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.book.is-mobile .text-stack {
+  gap: 0.35em;
+  padding-top: 0;
+}
+
+.book.is-mobile .text-stack .prose {
+  padding: 0;
+}
+
+.book.is-mobile .birthday {
+  font-size: 1.85rem;
+}
+
+.book.is-mobile .wish {
+  font-size: 1rem;
+  max-width: none;
+}
+
+.book.is-mobile .cake-page {
+  height: auto;
+  min-height: 0;
+  grid-template-rows: auto auto auto;
+  padding: 8px 12px 28px;
+}
+
+.book.is-mobile .cake-meta {
+  min-height: 0;
+}
+
+.book.is-mobile .flipper {
+  display: none;
 }
 
 .book.is-mobile .page-hotspot {
@@ -1033,6 +1044,33 @@ img {
 
 .book.is-mobile .page-hotspot--back::before {
   border-width: 56px 0 0 56px;
+}
+
+@media (max-width: 760px) {
+  .stage {
+    justify-content: flex-start;
+    padding-top: max(12px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .hint {
+    font-size: 1.05rem;
+    padding: 8px 14px;
+  }
+
+  .tools {
+    position: sticky;
+    bottom: 0;
+    z-index: 8;
+    gap: 8px;
+    padding: 8px 0 max(10px, env(safe-area-inset-bottom, 0px));
+    background: #f3eee4;
+  }
+
+  .soft-btn {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
 }
 
 /* Phones held sideways, and small laptops with the browser chrome taking most of the height. */
@@ -1056,16 +1094,16 @@ img {
   }
 
   .hint {
-    font-size: clamp(20px, 4.6vh, 26px);
+    font-size: 1rem;
   }
 
   .soft-btn {
-    font-size: 17px;
-    padding: 10px 18px;
+    font-size: 16px;
+    padding: 10px 16px;
   }
 
-  .book.is-mobile .art {
-    height: 46dvh;
+  .book.is-mobile .art img {
+    max-height: 38dvh;
   }
 }
 
