@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#3f3454" />
+    <title>A Little Story for Althea</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="fonts.css" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1 class="sr-only">A Little Story for Althea</h1>
+
+    <main class="stage">
+      <div class="book" id="book" data-page="0">
+        <div class="frame" id="frame">
+          <button class="cover" id="cover" type="button" aria-expanded="false" aria-label="Open the storybook">
+            <span class="cover__edges" aria-hidden="true"></span>
+            <span class="cover__cloth">
+              <span class="cover__title" aria-hidden="true">A Little Story<br />for Althea</span>
+            </span>
+          </button>
+
+          <div class="spread" id="spread">
+            <div class="sheet sheet--left" id="sheetLeft"></div>
+            <div class="sheet sheet--right" id="sheetRight"></div>
+            <div class="sheet sheet--single" id="sheetSingle"></div>
+            <div class="gutter" aria-hidden="true"></div>
+            <div class="flipper" id="flipper" aria-hidden="true">
+              <div class="flipper__face flipper__face--front" id="flipFront"></div>
+              <div class="flipper__face flipper__face--back" id="flipBack"></div>
+            </div>
+            <button class="page-hotspot page-hotspot--back" id="backHotspot" type="button" aria-label="Previous page" hidden></button>
+            <button class="page-hotspot page-hotspot--next" id="nextHotspot" type="button" aria-label="Next page" hidden></button>
+            <ul class="stickers" id="stickers" aria-label="Stickers"></ul>
+          </div>
+        </div>
+      </div>
+
+      <p class="hint" id="hint" role="status" aria-live="polite"></p>
+
+      <div class="tools">
+        <button class="soft-btn" id="sprinkleBtn" type="button" hidden aria-label="Add sprinkles to the cake">
+          Add sprinkles
+        </button>
+        <button class="soft-btn" id="micBtn" type="button" hidden aria-pressed="false">
+          Turn on the microphone
+        </button>
+        <button class="soft-btn" id="angelBtn" type="button" hidden>
+          Angel number
+        </button>
+        <button class="soft-btn" id="resetCakeBtn" type="button" hidden>
+          Reset cake
+        </button>
+        <button class="soft-btn" id="resetBtn" type="button">Start again</button>
+      </div>
+    </main>
+
+    <div id="confetti" aria-hidden="true"></div>
+
+    <div hidden>
+      <template id="tpl-1-text">
+        <div class="prose">
+          <p>Althea sat by the lake</p>
+          <p>and read until the afternoon</p>
+          <p>grew quiet.</p>
+          <p>She liked days like this.</p>
+        </div>
+      </template>
+      <template id="tpl-1-art">
+        <figure class="art">
+          <img
+            src="assets/lake.png"
+            width="1122"
+            height="1402"
+            alt="Althea reading beside a lake."
+            draggable="false"
+          />
+        </figure>
+      </template>
+
+      <template id="tpl-2-text">
+        <div class="prose">
+          <p>Soon, the sun began to go down.</p>
+          <p>Althea closed her book</p>
+          <p>and started home.</p>
+        </div>
+      </template>
+      <template id="tpl-2-art">
+        <figure class="art">
+          <img
+            src="assets/walk.png"
+            width="1122"
+            height="1402"
+            alt="Althea walking home as the sun goes down."
+            draggable="false"
+          />
+        </figure>
+      </template>
+
+      <template id="tpl-3-art">
+        <figure class="art">
+          <img
+            src="assets/stumble.png"
+            width="1122"
+            height="1402"
+            alt="Four panels: Althea walking, stumbling, standing up, and walking on."
+            draggable="false"
+          />
+        </figure>
+      </template>
+      <template id="tpl-3-left">
+        <div class="prose">
+          <p>On the way,</p>
+          <p>she stumbled.</p>
+        </div>
+      </template>
+      <template id="tpl-3-right">
+        <div class="prose">
+          <p>Then she stood up</p>
+          <p>and kept walking.</p>
+        </div>
+      </template>
+
+      <template id="tpl-4-text">
+        <div class="prose">
+          <p>At home,</p>
+          <p>the lights were warm.</p>
+          <p>Something sweet was waiting.</p>
+          <p>And there were still</p>
+          <p>many good things ahead.</p>
+        </div>
+      </template>
+      <template id="tpl-4-art">
+        <figure class="art art--door">
+          <img
+            src="assets/home.png"
+            width="1122"
+            height="1402"
+            alt="Althea and her rabbit in front of a closed door."
+            draggable="false"
+          />
+          <button class="door" type="button" aria-label="Open the door"></button>
+        </figure>
+      </template>
+
+      <template id="tpl-5-text">
+        <div class="prose">
+          <h2 class="birthday">Happy Birthday, Althea.</h2>
+          <p class="wish" id="birthdayWish">
+            May all your dreams come true and your heart be filled with peace.
+          </p>
+        </div>
+      </template>
+      <template id="tpl-5-cake">
+        <div class="cake-page">
+          <div class="cake-meta">
+            <p class="cake-count">Candles <strong id="cakeCandleCount">0</strong></p>
+            <p class="cake-surprise" id="cakeSurprise" hidden></p>
+          </div>
+          <div class="cake" id="cake" tabindex="0" aria-label="Birthday cake">
+            <div class="plate"></div>
+            <div class="layer layer-bottom"></div>
+            <div class="layer layer-middle"></div>
+            <div class="layer layer-top"></div>
+            <div class="icing"></div>
+            <div class="drip drip1"></div>
+            <div class="drip drip2"></div>
+            <div class="drip drip3"></div>
+            <div class="sprinkles" id="sprinkles" aria-hidden="true"></div>
+            <div class="candles" id="candles" aria-hidden="true"></div>
+          </div>
+          <div class="cake-angel" id="cakeAngel" hidden>
+            <p class="cake-angel__n"></p>
+            <p class="cake-angel__m"></p>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

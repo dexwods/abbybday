@@ -1,0 +1,41 @@
+/* Loaded under unique family names so a local Alegreya/Cormorant
+   install cannot steal the space character. Latin cuts only. */
+@font-face {
+  font-family: "AbbyBody";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/alegreya/v41/4UaBrEBBsBhlBjvfkSLhx6g.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "AbbyBody";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/alegreya/v41/4UaBrEBBsBhlBjvfkSLhx6g.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "AbbyBody";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/alegreya/v41/4UaSrEBBsBhlBjvfkSLk3abBFkvpkARTPlbgv5qhmSU.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "AbbyDisplay";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/cormorantinfant/v22/HhyPU44g9vKiM1sORYSiWeAsLN997_cV2Q.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "AbbyDisplay";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("https://fonts.gstatic.com/s/cormorantinfant/v22/HhyPU44g9vKiM1sORYSiWeAsLN997_cV2Q.woff2") format("woff2");
+}

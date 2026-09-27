@@ -1,0 +1,34 @@
+# abbybday
+
+Small birthday gift site hosted on GitHub Pages.
+
+## Local run
+
+You can open `index.html` directly, but **the microphone usually requires `https://` or `http://localhost`**.
+
+If you have Python installed, run a local static server:
+
+```bash
+cd abbybday
+python -m http.server 5173
+```
+
+Then visit `http://localhost:5173`.
+
+If you don't have Python, you can use Node (no install needed beyond Node):
+
+```bash
+cd abbybday
+node serve.mjs
+```
+
+Then visit `http://localhost:5173`.
+
+If you don't have Python or Node, the easiest option is to **deploy to GitHub Pages** (below) and test there over HTTPS.
+
+## GitHub Pages
+
+In GitHub: **Settings → Pages → Build and deployment → Deploy from a branch**
+
+- Branch: `main`
+- Folder: `/ (root)`
