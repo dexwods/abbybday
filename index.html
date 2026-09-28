@@ -7,16 +7,18 @@
     <title>A Little Story for Althea</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="fonts.css" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=phone-book-2" />
   </head>
   <body>
     <h1 class="sr-only">A Little Story for Althea</h1>
-
-    <div class="turn" id="turn">
-      <div class="turn__phone" aria-hidden="true"></div>
-      <p class="turn__title">Turn your phone sideways</p>
-      <p class="turn__copy">This story is a two-page book. Landscape keeps both pages together.</p>
-    </div>
+    <script>
+      document.body.classList.toggle(
+        "is-phone-book",
+        window.matchMedia("(max-width: 900px)").matches &&
+          (window.matchMedia("(pointer: coarse)").matches ||
+            Math.min(window.innerWidth, window.innerHeight) < 600),
+      );
+    </script>
 
     <main class="stage">
       <div class="book" id="book" data-page="0">
@@ -185,6 +187,6 @@
       </template>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=phone-book-2"></script>
   </body>
 </html>

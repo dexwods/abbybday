@@ -941,198 +941,405 @@ img {
   }
 }
 
-.turn {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
+/* --------------------------------------------------------------------------
+   Phone book: one physical portrait page at a time.
+   Desktop remains the two-page spread above. JS adds body.is-phone-book.
+   -------------------------------------------------------------------------- */
+body.is-phone-book {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body.is-phone-book .stage {
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  justify-content: flex-start;
+  padding:
+    max(12px, env(safe-area-inset-top, 0px))
+    max(12px, env(safe-area-inset-right, 0px))
+    calc(max(24px, env(safe-area-inset-bottom, 0px)) + 76px)
+    max(12px, env(safe-area-inset-left, 0px));
+  gap: 10px;
+  overflow: visible;
+}
+
+body.is-phone-book .book {
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+/* Closed book: portrait proportions, large enough to feel like an object. */
+body.is-phone-book .frame {
+  width: min(86vw, 344px);
+  height: clamp(470px, 68dvh, 520px);
+  max-width: calc(100vw - 24px);
+  transition: width 520ms ease, height 520ms ease;
+  perspective: 1500px;
+}
+
+/* Open book: a single portrait leaf, not a miniature desktop spread. */
+body.is-phone-book .book.is-open .frame,
+body.is-phone-book .book.is-opening .frame,
+body.is-phone-book .book.is-closing .frame {
+  width: min(92vw, 390px);
+  height: clamp(540px, calc(100dvh - 132px), 630px);
+  max-width: calc(100vw - 20px);
+}
+
+/* The finale gets more vertical room. The stage scrolls instead of squashing it. */
+body.is-phone-book .book[data-page="5"] .frame {
+  height: 700px;
+}
+
+body.is-phone-book .cover {
+  width: 100%;
+  height: 100%;
+}
+
+body.is-phone-book .cover__cloth {
+  padding: 42px 28px 42px 34px;
+  border-radius: 3px 14px 14px 3px;
+  box-shadow: 0 18px 38px rgba(55, 42, 28, 0.18);
+}
+
+body.is-phone-book .cover__cloth::before {
+  width: 15px;
+}
+
+body.is-phone-book .cover__edges {
+  width: 11px;
+}
+
+body.is-phone-book .cover__title {
+  max-width: 7.5em;
+  font-size: clamp(30px, 9vw, 38px);
+  line-height: 1.1;
+}
+
+body.is-phone-book .spread {
   display: none;
-  place-items: center;
-  align-content: center;
-  gap: 18px;
-  padding: 32px 28px;
-  background: #3f3454;
-  color: #f3e6c8;
-  text-align: center;
-}
-
-.turn__phone {
-  width: 46px;
-  height: 78px;
-  margin: 0 auto 8px;
-  border: 3px solid #f3e6c8;
-  border-radius: 10px;
-  box-shadow: inset 0 -8px 0 rgba(243, 230, 200, 0.18);
-  animation: turn-phone 1.8s ease-in-out infinite;
-}
-
-.turn__title {
-  margin: 0;
-  font-size: 1.6rem;
-  line-height: 1.2;
-}
-
-.turn__copy {
-  margin: 0;
-  max-width: 18em;
-  font-size: 1.05rem;
-  line-height: 1.45;
-  color: #e6dcc8;
-}
-
-@keyframes turn-phone {
-  0%,
-  25% {
-    transform: rotate(0deg);
-  }
-  55%,
-  100% {
-    transform: rotate(90deg);
-  }
-}
-
-body.needs-rotate {
+  grid-template-columns: 1fr;
   overflow: hidden;
+  touch-action: pan-y;
+  border-radius: 5px 12px 12px 5px;
+  background:
+    linear-gradient(90deg, rgba(91, 67, 43, 0.08), transparent 16px),
+    #fbf7ef;
+  box-shadow:
+    0 18px 42px rgba(55, 42, 28, 0.16),
+    inset -1px 0 0 rgba(118, 91, 62, 0.08);
 }
 
-body.needs-rotate .turn {
+body.is-phone-book .book.is-open .spread,
+body.is-phone-book .book.is-opening .spread,
+body.is-phone-book .book.is-closing .spread {
   display: grid;
 }
 
-body.needs-rotate .stage {
-  visibility: hidden;
+body.is-phone-book .sheet--left,
+body.is-phone-book .sheet--right,
+body.is-phone-book .gutter {
+  display: none !important;
+}
+
+body.is-phone-book .sheet--single {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 56%) minmax(0, 44%);
+  overflow: hidden;
+  border-radius: 5px 12px 12px 5px;
+  background: transparent;
+}
+
+/* A faint stack on the fore-edge makes this read as a book page, not a card. */
+body.is-phone-book .spread::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 3px;
+  bottom: 8px;
+  width: 7px;
+  border-radius: 0 7px 7px 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(192, 175, 146, 0.34) 0 1px,
+    rgba(251, 247, 239, 0.9) 1px 3px
+  );
   pointer-events: none;
+  z-index: 3;
 }
 
-@media (orientation: portrait) and (max-width: 739px) {
-  .turn {
-    display: grid;
-  }
-
-  .stage {
-    visibility: hidden;
-    pointer-events: none;
-  }
+body.is-phone-book .art {
+  min-height: 0;
+  padding: 26px 24px 8px;
+  place-items: center;
 }
 
-.book.is-short .stickers li.is-rabbit {
-  width: 110px;
-  height: 110px;
+body.is-phone-book .art img {
+  width: 100%;
+  height: 100%;
+  max-width: 315px;
+  object-fit: contain;
+  object-position: center;
 }
 
+body.is-phone-book .prose {
+  height: 100%;
+  justify-content: flex-start;
+  padding: 14px 30px 34px;
+  font-size: clamp(18px, 5vw, 21px);
+  line-height: 1.42;
+  letter-spacing: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+body.is-phone-book .prose p + p {
+  margin-top: 0.55em;
+}
+
+/* Page three keeps the stumble/stand-up beat side-by-side inside one leaf. */
+body.is-phone-book .book[data-page="3"] .sheet--single {
+  grid-template-rows: minmax(0, 62%) minmax(0, 38%);
+}
+
+body.is-phone-book .book[data-page="3"] .text-stack {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  gap: 0;
+  min-height: 0;
+  border-top: 1px solid rgba(80, 56, 32, 0.1);
+}
+
+body.is-phone-book .book[data-page="3"] .text-stack .prose {
+  justify-content: center;
+  padding: 14px 18px 26px;
+  font-size: clamp(17px, 4.7vw, 20px);
+}
+
+body.is-phone-book .book[data-page="3"] .text-stack .prose + .prose {
+  border-left: 1px solid rgba(80, 56, 32, 0.1);
+}
+
+/* Door page: keep the illustration large enough for the mapped hotspot. */
+body.is-phone-book .book[data-page="4"] .sheet--single {
+  grid-template-rows: minmax(0, 58%) minmax(0, 42%);
+}
+
+/* Finale: greeting first, cake second. */
+body.is-phone-book .book[data-page="5"] .sheet--single {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+body.is-phone-book .book[data-page="5"] .prose {
+  height: auto;
+  padding: 24px 26px 8px;
+  justify-content: flex-start;
+  text-align: center;
+  overflow: visible;
+}
+
+body.is-phone-book .birthday {
+  font-size: clamp(28px, 8vw, 34px);
+  line-height: 1.12;
+}
+
+body.is-phone-book .wish {
+  margin: 0.7em auto 0;
+  max-width: 19em;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+body.is-phone-book .cake-page {
+  min-height: 0;
+  padding: 8px 12px 16px;
+  grid-template-rows: auto minmax(300px, 1fr) auto;
+}
+
+body.is-phone-book .cake-meta {
+  min-height: 3em;
+  gap: 3px;
+}
+
+body.is-phone-book .cake-count {
+  font-size: 17px;
+}
+
+body.is-phone-book .cake-count strong {
+  font-size: 24px;
+}
+
+body.is-phone-book .cake-surprise {
+  font-size: 17px;
+}
+
+body.is-phone-book .cake-angel {
+  margin-top: 4px;
+  max-width: 19em;
+}
+
+body.is-phone-book .cake-angel__n {
+  font-size: 24px;
+}
+
+body.is-phone-book .cake-angel__m {
+  margin-top: 3px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+body.is-phone-book .hint {
+  min-height: 0;
+  margin: 0;
+  max-width: min(92vw, 390px);
+  padding: 7px 14px;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+body.is-phone-book .hint:empty {
+  display: none;
+}
+
+/* Controls stay in normal flow. Telegram/Safari chrome can cover fixed UI. */
+body.is-phone-book .tools {
+  position: static;
+  width: min(92vw, 390px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+
+body.is-phone-book .soft-btn {
+  min-height: 44px;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  line-height: 1.15;
+  box-shadow: 0 6px 16px rgba(63, 52, 84, 0.1);
+}
+
+body.is-phone-book #micBtn,
+body.is-phone-book #resetBtn {
+  grid-column: 1 / -1;
+}
+
+body.is-phone-book #resetBtn {
+  min-height: 38px;
+  padding: 7px 12px;
+  background: transparent;
+  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Smaller, subtler dog-ears. The whole 54px corner remains tappable. */
+body.is-phone-book .page-hotspot {
+  width: 54px;
+  height: 54px;
+  z-index: 8;
+}
+
+body.is-phone-book .page-hotspot--next::before {
+  border-width: 0 0 30px 30px;
+}
+
+body.is-phone-book .page-hotspot--back::before {
+  border-width: 30px 0 0 30px;
+}
+
+/* Full-leaf phone page turn. */
+body.is-phone-book .flipper.is-single {
+  left: 0;
+  right: auto;
+  width: 100%;
+  height: 100%;
+}
+
+body.is-phone-book .flipper.is-single.is-forward {
+  transform-origin: left center;
+}
+
+body.is-phone-book .flipper.is-single.is-back {
+  transform-origin: right center;
+}
+
+body.is-phone-book .flipper.is-single .flipper__face {
+  border-radius: 5px 12px 12px 5px;
+  background:
+    linear-gradient(90deg, rgba(91, 67, 43, 0.07), transparent 14px),
+    #fbf7ef;
+}
+
+body.is-phone-book .flipper.is-single .flip-single {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: minmax(0, 56%) minmax(0, 44%);
+  overflow: hidden;
+}
+
+body.is-phone-book .flipper.is-single .flip-single--3 {
+  grid-template-rows: minmax(0, 62%) minmax(0, 38%);
+}
+
+body.is-phone-book .flipper.is-single .flip-single--4 {
+  grid-template-rows: minmax(0, 58%) minmax(0, 42%);
+}
+
+body.is-phone-book .flipper.is-single .flip-single--5 {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+body.is-phone-book .flipper.is-single .art,
+body.is-phone-book .flipper.is-single .prose,
+body.is-phone-book .flipper.is-single .cake-page,
+body.is-phone-book .flipper.is-single .text-stack {
+  min-height: 0;
+}
+
+/* Keep phone stickers decorative and small enough to fit only in cream space. */
+body.is-phone-book .stickers li.is-rabbit {
+  width: 72px;
+  height: 72px;
+}
+
+body.is-phone-book .stickers li.is-bear {
+  width: 60px;
+  height: 60px;
+}
+
+body.is-phone-book .stickers li.is-cookie,
+body.is-phone-book .stickers li.is-peony {
+  width: 44px;
+  height: 44px;
+}
+
+/* Landscape on a phone is allowed, but never squeezed to viewport height.
+   The page simply scrolls vertically if Telegram/Safari leaves very little room. */
 @media (orientation: landscape) and (max-height: 560px) {
-  html,
-  body {
-    height: 100%;
-    overflow: hidden;
+  body.is-phone-book .stage {
+    min-height: 100dvh;
+    height: auto;
+    overflow: visible;
   }
 
-  .stage {
-    min-height: 100%;
-    height: 100dvh;
-    padding:
-      max(6px, env(safe-area-inset-top, 0px))
-      max(10px, env(safe-area-inset-right, 0px))
-      max(8px, env(safe-area-inset-bottom, 0px))
-      max(10px, env(safe-area-inset-left, 0px));
-    gap: 6px;
-    justify-content: center;
+  body.is-phone-book .frame,
+  body.is-phone-book .book.is-open .frame,
+  body.is-phone-book .book.is-opening .frame,
+  body.is-phone-book .book.is-closing .frame {
+    height: 560px;
   }
 
-  .frame {
-    width: min(240px, 38vh);
-    height: min(340px, 78dvh);
-  }
-
-  .book.is-open .frame,
-  .book.is-opening .frame,
-  .book.is-closing .frame {
-    width: min(1100px, calc(100vw - 20px));
-    height: min(640px, calc(100dvh - 62px));
-  }
-
-  .cover {
-    width: 100%;
-    height: 100%;
-  }
-
-  .cover__title {
-    font-size: clamp(22px, 6vh, 36px);
-  }
-
-  .prose {
-    padding: 14px 18px;
-    font-size: clamp(14px, 3.8vh, 22px);
-  }
-
-  .birthday {
-    font-size: clamp(22px, 5.6vh, 36px);
-  }
-
-  .wish {
-    font-size: 0.9em;
-    margin-top: 0.7em;
-  }
-
-  .art {
-    padding: 10px 12px 12px;
-  }
-
-  .split {
-    grid-template-rows: minmax(0, 1fr) 5.5em;
-  }
-
-  .text-stack {
-    gap: 0.8em;
-  }
-
-  .cake-page {
-    padding: 8px 8px 6px;
-  }
-
-  .cake-meta {
-    min-height: 0;
-    gap: 2px;
-  }
-
-  .cake-count {
-    font-size: 16px;
-  }
-
-  .cake-count strong {
-    font-size: 22px;
-  }
-
-  .cake-surprise {
-    font-size: 16px;
-  }
-
-  .cake-angel__n {
-    font-size: 22px;
-  }
-
-  .cake-angel__m {
-    font-size: 14px;
-  }
-
-  .hint {
-    min-height: 0;
-    font-size: 0.95rem;
-    padding: 4px 12px;
-  }
-
-  .tools {
-    position: static;
-    gap: 8px;
-  }
-
-  .soft-btn {
-    font-size: 14px;
-    padding: 8px 14px;
-  }
-
-  .page-hotspot {
-    width: 64px;
-    height: 64px;
+  body.is-phone-book .book[data-page="5"] .frame {
+    height: 700px;
   }
 }
 
@@ -1144,8 +1351,7 @@ body.needs-rotate .stage {
   .flame,
   .confetti,
   .stickers li,
-  .cake-surprise,
-  .turn__phone {
+  .cake-surprise {
     animation: none !important;
     transition: none !important;
   }

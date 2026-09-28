@@ -18,12 +18,12 @@ const els = {
   hint: document.getElementById("hint"),
   stickers: document.getElementById("stickers"),
   confetti: document.getElementById("confetti"),
-  turn: document.getElementById("turn"),
 };
 
 const reduceMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
 const coarseMedia = window.matchMedia("(pointer: coarse)");
 const shortMedia = window.matchMedia("(max-height: 560px)");
+const phoneBookMedia = window.matchMedia("(max-width: 900px)");
 
 const STICKER_PACK = [
   { src: "assets/stickers/rabbit.png", kind: "rabbit" },
@@ -111,8 +111,9 @@ function isPhone() {
   return coarseMedia.matches || window.matchMedia("(max-width: 820px)").matches;
 }
 
-function needsRotate() {
-  return isPhone() && window.innerHeight > window.innerWidth && window.innerWidth < 740;
+function usePhoneBook() {
+  // Catches iPhones in portrait and landscape without forcing orientation.
+  return phoneBookMedia.matches && (coarseMedia.matches || Math.min(window.innerWidth, window.innerHeight) < 600);
 }
 
 function isShortScreen() {
@@ -123,18 +124,18 @@ function isCoarsePointer() {
   return coarseMedia.matches;
 }
 
-function tryLockLandscape() {
-  const orientation = screen.orientation;
-  if (!orientation || typeof orientation.lock !== "function") return;
-  orientation.lock("landscape").catch(() => {});
-}
+let phoneBookMode = usePhoneBook();
 
 function syncOrientation() {
-  const rotate = needsRotate();
-  document.body.classList.toggle("needs-rotate", rotate);
+  const nextPhoneBookMode = usePhoneBook();
+  const changed = nextPhoneBookMode !== phoneBookMode;
+  phoneBookMode = nextPhoneBookMode;
+
   document.body.classList.toggle("is-phone", isPhone());
+  document.body.classList.toggle("is-phone-book", phoneBookMode);
   document.body.classList.toggle("is-short", isShortScreen());
   els.book.classList.toggle("is-short", isShortScreen());
+  return changed;
 }
 
 function prefersReduced() {
@@ -209,9 +210,15 @@ function mountView(view) {
   const cake = document.getElementById("cake");
   if (cake) cake.remove();
 
-  els.sheetLeft.innerHTML = view.left;
-  els.sheetRight.innerHTML = view.right;
-  els.sheetSingle.innerHTML = "";
+  if (phoneBookMode) {
+    els.sheetLeft.innerHTML = "";
+    els.sheetRight.innerHTML = "";
+    els.sheetSingle.innerHTML = view.single;
+  } else {
+    els.sheetLeft.innerHTML = view.left;
+    els.sheetRight.innerHTML = view.right;
+    els.sheetSingle.innerHTML = "";
+  }
 
   const slot = document.getElementById("cake");
   if (cake && slot && slot !== cake) slot.replaceWith(cake);
@@ -297,23 +304,32 @@ function animateTurn(from, to, forward, token) {
 
   if (prefersReduced()) return Promise.resolve();
 
-  if (forward) {
+  els.flipper.classList.toggle("is-single", phoneBookMode);
+
+  if (phoneBookMode) {
+    const singleFace = (html, index) =>
+      `<div class="sheet sheet--single flip-single flip-single--${index}">${stripIds(html)}</div>`;
+    els.flipFront.innerHTML = singleFace(fromView.single, from);
+    els.flipBack.innerHTML = singleFace(toView.single, to);
+    els.sheetSingle.innerHTML = toView.single;
+    els.flipper.classList.toggle("is-forward", forward);
+    els.flipper.classList.toggle("is-back", !forward);
+  } else if (forward) {
     els.flipFront.innerHTML = stripIds(fromView.right);
     els.flipBack.innerHTML = stripIds(toView.left);
     els.flipper.classList.add("is-forward");
     els.flipper.classList.remove("is-back");
+    els.sheetRight.innerHTML = toView.right;
   } else {
     els.flipFront.innerHTML = stripIds(fromView.left);
     els.flipBack.innerHTML = stripIds(toView.right);
     els.flipper.classList.add("is-back");
     els.flipper.classList.remove("is-forward");
+    els.sheetLeft.innerHTML = toView.left;
   }
 
   els.flipper.classList.add("is-active");
   void els.flipper.offsetWidth;
-
-  if (forward) els.sheetRight.innerHTML = toView.right;
-  else els.sheetLeft.innerHTML = toView.left;
 
   void els.flipper.offsetWidth;
   els.flipper.classList.add("is-animating");
@@ -328,7 +344,7 @@ function animateTurn(from, to, forward, token) {
         resolve();
         return;
       }
-      els.flipper.classList.remove("is-active", "is-animating", "is-forward", "is-back");
+      els.flipper.classList.remove("is-active", "is-animating", "is-forward", "is-back", "is-single");
       els.flipFront.innerHTML = "";
       els.flipBack.innerHTML = "";
       resolve();
@@ -417,6 +433,11 @@ async function goTo(to) {
 }
 
 function stickerSize(kind) {
+  if (phoneBookMode) {
+    if (kind === "rabbit") return 72;
+    if (kind === "cookie" || kind === "peony") return 44;
+    return 60;
+  }
   if (kind === "rabbit") return isShortScreen() ? 110 : 150;
   if (kind === "cookie" || kind === "peony") return isShortScreen() ? 56 : 84;
   return isShortScreen() ? 88 : 140;
@@ -435,7 +456,7 @@ function pickStickerSpot(size) {
   const host = els.stickers;
   if (!host) return null;
   const hr = host.getBoundingClientRect();
-  const margin = 14;
+  const margin = phoneBookMode ? 10 : 14;
   const maxX = hr.width - size - margin;
   const maxY = hr.height - size - margin;
   if (maxX <= margin || maxY <= margin) return null;
@@ -455,7 +476,7 @@ function pickStickerSpot(size) {
 
   document
     .querySelectorAll(".birthday, .wish, .prose p, .art img, .cake, .cake-meta, .cake-angel, .door")
-    .forEach((el) => add(el, 18));
+    .forEach((el) => add(el, phoneBookMode ? 10 : 18));
 
   stickerItems.forEach((item) => {
     const other = item.size || stickerSize(item.kind);
@@ -508,7 +529,9 @@ function countKind(kind) {
 
 function revealSticker(item) {
   if (countKind(item.kind) >= 3) return false;
-  const sizes = item.kind === "rabbit" ? [stickerSize("rabbit"), 118, 96] : [stickerSize(item.kind)];
+  const sizes = item.kind === "rabbit"
+    ? (phoneBookMode ? [72, 64, 56] : [stickerSize("rabbit"), 118, 96])
+    : [stickerSize(item.kind)];
   for (const size of sizes) {
     const spot = pickStickerSpot(size);
     if (!spot) continue;
@@ -855,7 +878,7 @@ function resetAll() {
   paintStickers();
   page = 0;
   els.book.classList.remove("is-open", "is-opening", "is-closing", "is-turning");
-  els.flipper.classList.remove("is-active", "is-animating", "is-forward", "is-back");
+  els.flipper.classList.remove("is-active", "is-animating", "is-forward", "is-back", "is-single");
   els.flipFront.innerHTML = "";
   els.flipBack.innerHTML = "";
   els.sheetLeft.innerHTML = "";
@@ -871,7 +894,13 @@ function onForwardSheet(event) {
     goTo(5);
     return;
   }
-  if (event.target.closest("#cake, .page-hotspot")) return;
+  if (event.target.closest("#cake, .page-hotspot, button")) return;
+
+  if (phoneBookMode) {
+    const rect = els.sheetSingle.getBoundingClientRect();
+    if (event.clientX < rect.left + rect.width * 0.48) return;
+  }
+
   if (page >= 1 && page <= 3) goTo(page + 1);
 }
 
@@ -900,7 +929,6 @@ function placeCandleFromEvent(event) {
 }
 
 els.cover.addEventListener("click", () => {
-  tryLockLandscape();
   if (page === 0) goTo(1);
 });
 
@@ -915,6 +943,29 @@ els.backHotspot.addEventListener("click", () => {
 
 els.sheetRight.addEventListener("click", onForwardSheet);
 els.sheetSingle.addEventListener("click", onForwardSheet);
+
+let swipeStart = null;
+
+els.spread.addEventListener("pointerdown", (event) => {
+  if (!phoneBookMode || turning || page === 0 || page === 5) return;
+  if (event.target.closest("button, #cake")) return;
+  swipeStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
+});
+
+els.spread.addEventListener("pointerup", (event) => {
+  if (!swipeStart || event.pointerId !== swipeStart.id) return;
+  const dx = event.clientX - swipeStart.x;
+  const dy = event.clientY - swipeStart.y;
+  swipeStart = null;
+
+  if (Math.abs(dx) < 46 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+  if (dx < 0 && page >= 1 && page <= 3) goTo(page + 1);
+  if (dx > 0 && page >= 1 && page <= 4) goTo(page - 1);
+});
+
+els.spread.addEventListener("pointercancel", () => {
+  swipeStart = null;
+});
 
 document.addEventListener("keydown", (event) => {
   const cake = document.getElementById("cake");
@@ -966,15 +1017,11 @@ els.resetBtn.addEventListener("click", () => {
 });
 
 function relayout() {
-  syncOrientation();
+  const modeChanged = syncOrientation();
+  if (modeChanged && page > 0) mountView(getView(page));
   scaleCake();
   positionDoors();
   paintStickers();
-}
-
-window.addEventListener("pointerdown", tryLockLandscape, { once: true });
-if (els.turn) {
-  els.turn.addEventListener("click", tryLockLandscape);
 }
 
 window.addEventListener("resize", relayout);
@@ -987,6 +1034,9 @@ if (window.visualViewport) {
 
 if (shortMedia.addEventListener) shortMedia.addEventListener("change", relayout);
 else shortMedia.addListener(relayout);
+
+if (phoneBookMedia.addEventListener) phoneBookMedia.addEventListener("change", relayout);
+else phoneBookMedia.addListener(relayout);
 
 const portraitMedia = window.matchMedia("(orientation: portrait)");
 if (portraitMedia.addEventListener) portraitMedia.addEventListener("change", relayout);
