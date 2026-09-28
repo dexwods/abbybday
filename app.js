@@ -18,11 +18,12 @@ const els = {
   hint: document.getElementById("hint"),
   stickers: document.getElementById("stickers"),
   confetti: document.getElementById("confetti"),
+  turn: document.getElementById("turn"),
 };
 
-const mobileMedia = window.matchMedia("(max-width: 760px), (max-height: 560px)");
 const reduceMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
 const coarseMedia = window.matchMedia("(pointer: coarse)");
+const shortMedia = window.matchMedia("(max-height: 560px)");
 
 const STICKER_PACK = [
   { src: "assets/stickers/rabbit.png", kind: "rabbit" },
@@ -69,7 +70,6 @@ let lastAngel = null;
 let sprinkleItems = [];
 let confettiTimer = 0;
 let micToken = 0;
-let layoutMobile = mobileMedia.matches;
 let micState = freshMic();
 
 function tpl(id) {
@@ -107,12 +107,34 @@ function getView(index) {
   return views[index];
 }
 
-function isMobile() {
-  return mobileMedia.matches;
+function isPhone() {
+  return coarseMedia.matches || window.matchMedia("(max-width: 820px)").matches;
+}
+
+function needsRotate() {
+  return isPhone() && window.innerHeight > window.innerWidth && window.innerWidth < 740;
+}
+
+function isShortScreen() {
+  return shortMedia.matches || window.innerHeight < 560;
 }
 
 function isCoarsePointer() {
   return coarseMedia.matches;
+}
+
+function tryLockLandscape() {
+  const orientation = screen.orientation;
+  if (!orientation || typeof orientation.lock !== "function") return;
+  orientation.lock("landscape").catch(() => {});
+}
+
+function syncOrientation() {
+  const rotate = needsRotate();
+  document.body.classList.toggle("needs-rotate", rotate);
+  document.body.classList.toggle("is-phone", isPhone());
+  document.body.classList.toggle("is-short", isShortScreen());
+  els.book.classList.toggle("is-short", isShortScreen());
 }
 
 function prefersReduced() {
@@ -168,7 +190,6 @@ function updateHint() {
 function updateChrome() {
   const open = page > 0;
   els.book.dataset.page = String(page);
-  els.book.classList.toggle("is-mobile", isMobile());
   els.book.classList.toggle("is-open", open);
   els.cover.setAttribute("aria-expanded", open ? "true" : "false");
   els.backHotspot.hidden = page < 1 || page > 4;
@@ -181,21 +202,16 @@ function updateChrome() {
   updateCandleCount();
   paintAngel();
   updateHint();
+  syncOrientation();
 }
 
 function mountView(view) {
   const cake = document.getElementById("cake");
   if (cake) cake.remove();
 
-  if (isMobile()) {
-    els.sheetSingle.innerHTML = view.single;
-    els.sheetLeft.innerHTML = "";
-    els.sheetRight.innerHTML = "";
-  } else {
-    els.sheetLeft.innerHTML = view.left;
-    els.sheetRight.innerHTML = view.right;
-    els.sheetSingle.innerHTML = "";
-  }
+  els.sheetLeft.innerHTML = view.left;
+  els.sheetRight.innerHTML = view.right;
+  els.sheetSingle.innerHTML = "";
 
   const slot = document.getElementById("cake");
   if (cake && slot && slot !== cake) slot.replaceWith(cake);
@@ -254,9 +270,7 @@ function scaleCake() {
   if (!cake) return;
   const host = cake.closest(".cake-page");
   const availW = Math.max(140, (host?.clientWidth || window.innerWidth) - 24);
-  const availH = isMobile()
-    ? Math.max(180, Math.min(260, window.innerHeight * 0.36))
-    : Math.max(140, (host?.clientHeight || 250) - 16);
+  const availH = Math.max(140, (host?.clientHeight || 250) - 16);
   const scale = Math.min(1, availW / 290, availH / 250);
   cake.style.setProperty("--cake-scale", String(scale));
 }
@@ -281,7 +295,7 @@ function animateTurn(from, to, forward, token) {
   const fromView = getView(from);
   const toView = getView(to);
 
-  if (isMobile() || prefersReduced()) return Promise.resolve();
+  if (prefersReduced()) return Promise.resolve();
 
   if (forward) {
     els.flipFront.innerHTML = stripIds(fromView.right);
@@ -403,9 +417,9 @@ async function goTo(to) {
 }
 
 function stickerSize(kind) {
-  if (kind === "rabbit") return isMobile() ? 120 : 150;
-  if (kind === "cookie" || kind === "peony") return isMobile() ? 64 : 84;
-  return isMobile() ? 110 : 140;
+  if (kind === "rabbit") return isShortScreen() ? 110 : 150;
+  if (kind === "cookie" || kind === "peony") return isShortScreen() ? 56 : 84;
+  return isShortScreen() ? 88 : 140;
 }
 
 function inflate(rect, pad) {
@@ -886,6 +900,7 @@ function placeCandleFromEvent(event) {
 }
 
 els.cover.addEventListener("click", () => {
+  tryLockLandscape();
   if (page === 0) goTo(1);
 });
 
@@ -951,15 +966,15 @@ els.resetBtn.addEventListener("click", () => {
 });
 
 function relayout() {
-  const nextMobile = isMobile();
-  if (nextMobile !== layoutMobile) {
-    layoutMobile = nextMobile;
-    els.book.classList.toggle("is-mobile", nextMobile);
-    if (page > 0) mountView(getView(page));
-  }
+  syncOrientation();
   scaleCake();
   positionDoors();
   paintStickers();
+}
+
+window.addEventListener("pointerdown", tryLockLandscape, { once: true });
+if (els.turn) {
+  els.turn.addEventListener("click", tryLockLandscape);
 }
 
 window.addEventListener("resize", relayout);
@@ -970,11 +985,16 @@ if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", relayout);
 }
 
-if (mobileMedia.addEventListener) mobileMedia.addEventListener("change", relayout);
-else mobileMedia.addListener(relayout);
+if (shortMedia.addEventListener) shortMedia.addEventListener("change", relayout);
+else shortMedia.addListener(relayout);
+
+const portraitMedia = window.matchMedia("(orientation: portrait)");
+if (portraitMedia.addEventListener) portraitMedia.addEventListener("change", relayout);
+else portraitMedia.addListener(relayout);
 
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(relayout);
 }
 
+syncOrientation();
 updateChrome();
