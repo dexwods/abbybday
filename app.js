@@ -214,6 +214,7 @@ function updateChrome() {
   paintAngel();
   updateHint();
   syncOrientation();
+  if (page === 5) resumeAudio();
 }
 
 function mountView(view) {
@@ -790,17 +791,26 @@ function computeRmsNormalized(timeDomainBytes) {
   return Math.sqrt(sumSq / timeDomainBytes.length);
 }
 
+function resumeAudio() {
+  if (!micState.audioContext) return;
+  if (micState.audioContext.state === "suspended") {
+    micState.audioContext.resume().catch(() => {});
+  }
+}
+
 function analyzeMic() {
+  resumeAudio();
   if (!micState.analyser || !micState.dataArray) return;
 
   micState.analyser.getByteTimeDomainData(micState.dataArray);
   const rms = computeRmsNormalized(micState.dataArray);
   micState.smoothed = micState.smoothed * 0.88 + rms * 0.12;
 
-  const lit = document.querySelectorAll("#cake .candle:not(.extinguished)");
+  const cake = document.getElementById("cake");
+  const lit = cake ? cake.querySelectorAll(".candle:not(.extinguished)") : [];
   const now = Date.now();
 
-  if (page === 5 && lit.length > 0 && micState.smoothed > 0.12 && now - micState.lastBlowAt > 1400) {
+  if (page === 5 && lit.length > 0 && micState.smoothed > 0.08 && now - micState.lastBlowAt > 1400) {
     micState.lastBlowAt = now;
     extinguishAllCandles();
   }
@@ -821,23 +831,44 @@ function stopMic() {
 
 async function enableMic(options = {}) {
   const quiet = Boolean(options.quiet);
-  if (micState.enabled) return;
+  if (micState.enabled) {
+    resumeAudio();
+    paintMicButton();
+    return;
+  }
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     if (!quiet) setHint("This browser needs an https:// address to use the microphone.");
     return;
   }
 
+  // Start the audio context in the same click as the permission prompt.
+  // Safari will not resume it later if we wait until after getUserMedia.
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  audioContext.resume().catch(() => {});
+
   const token = ++micToken;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
+        video: false,
+      });
+    } catch (constraintErr) {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    }
+
     if (token !== micToken) {
       stream.getTracks().forEach((track) => track.stop());
+      audioContext.close().catch(() => {});
       return;
     }
 
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    // Safari hands back a suspended context until the page asks it to start.
     if (audioContext.state === "suspended") await audioContext.resume();
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 1024;
@@ -859,6 +890,7 @@ async function enableMic(options = {}) {
     updateHint();
   } catch (err) {
     console.error(err);
+    audioContext.close().catch(() => {});
     if (token !== micToken) return;
     paintMicButton();
     if (!quiet) setHint("The microphone stayed off. You can still light candles by tapping.");
