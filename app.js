@@ -810,7 +810,7 @@ function analyzeMic() {
   const lit = cake ? cake.querySelectorAll(".candle:not(.extinguished)") : [];
   const now = Date.now();
 
-  if (page === 5 && lit.length > 0 && micState.smoothed > 0.08 && now - micState.lastBlowAt > 1400) {
+  if (page === 5 && lit.length > 0 && micState.smoothed > 0.12 && now - micState.lastBlowAt > 1400) {
     micState.lastBlowAt = now;
     extinguishAllCandles();
   }
@@ -849,19 +849,7 @@ async function enableMic(options = {}) {
 
   const token = ++micToken;
   try {
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-        },
-        video: false,
-      });
-    } catch (constraintErr) {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    }
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
 
     if (token !== micToken) {
       stream.getTracks().forEach((track) => track.stop());
