@@ -166,6 +166,14 @@ function setHint(text) {
   els.hint.textContent = text;
 }
 
+function paintMicButton() {
+  if (!els.micBtn) return;
+  els.micBtn.hidden = page !== 5;
+  els.micBtn.disabled = micState.enabled;
+  els.micBtn.textContent = micState.enabled ? "Mic on" : "Mic";
+  els.micBtn.setAttribute("aria-pressed", micState.enabled ? "true" : "false");
+}
+
 function updateHint() {
   if (page === 4) {
     setHint("Tap the glowing door.");
@@ -182,11 +190,7 @@ function updateHint() {
   const any = cake ? cake.querySelectorAll(".candle").length : 0;
 
   if (lit > 0) {
-    setHint(
-      micState.enabled
-        ? "Blow the candles out."
-        : "Turn on the microphone, then blow them out.",
-    );
+    setHint(micState.enabled ? "Blow the candles out." : "Tap Mic, then blow them out.");
     return;
   }
 
@@ -205,6 +209,7 @@ function updateChrome() {
   els.sprinkleBtn.hidden = page !== 5;
   els.angelBtn.hidden = page !== 5;
   if (els.resetCakeBtn) els.resetCakeBtn.hidden = page !== 5;
+  paintMicButton();
   updateCandleCount();
   paintAngel();
   updateHint();
@@ -281,9 +286,11 @@ function scaleCake() {
   const cake = document.getElementById("cake");
   if (!cake) return;
   const host = cake.closest(".cake-page");
+  const flamePad = phoneBookMode ? 88 : 48;
   const availW = Math.max(140, (host?.clientWidth || window.innerWidth) - 24);
-  const availH = Math.max(140, (host?.clientHeight || 250) - 16);
-  const scale = Math.min(1, availW / 290, availH / 250);
+  const availH = Math.max(140, (host?.clientHeight || 250) - flamePad);
+  const cap = phoneBookMode ? 0.72 : 1;
+  const scale = Math.min(cap, availW / 290, availH / 250);
   cake.style.setProperty("--cake-scale", String(scale));
 }
 
@@ -809,16 +816,15 @@ function stopMic() {
     micState.audioContext.close();
   }
   micState = freshMic();
-  els.micBtn.disabled = false;
-  els.micBtn.textContent = "Turn on the microphone";
-  els.micBtn.setAttribute("aria-pressed", "false");
+  paintMicButton();
 }
 
-async function enableMic() {
-  if (micState.enabled || page !== 5) return;
+async function enableMic(options = {}) {
+  const quiet = Boolean(options.quiet);
+  if (micState.enabled) return;
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    setHint("This browser needs an https:// address to use the microphone.");
+    if (!quiet) setHint("This browser needs an https:// address to use the microphone.");
     return;
   }
 
@@ -849,14 +855,13 @@ async function enableMic() {
       lastBlowAt: 0,
     };
 
-    els.micBtn.textContent = "Microphone is on";
-    els.micBtn.disabled = true;
-    els.micBtn.setAttribute("aria-pressed", "true");
+    paintMicButton();
     updateHint();
   } catch (err) {
     console.error(err);
     if (token !== micToken) return;
-    setHint("The microphone stayed off. You can still light candles by tapping.");
+    paintMicButton();
+    if (!quiet) setHint("The microphone stayed off. You can still light candles by tapping.");
   }
 }
 
@@ -934,7 +939,9 @@ function placeCandleFromEvent(event) {
 }
 
 els.cover.addEventListener("click", () => {
-  if (page === 0) goTo(1);
+  if (page !== 0) return;
+  enableMic({ quiet: true });
+  goTo(1);
 });
 
 els.nextHotspot.addEventListener("click", () => {
