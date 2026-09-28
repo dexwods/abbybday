@@ -167,6 +167,11 @@ function setHint(text) {
 }
 
 function updateHint() {
+  if (page === 4) {
+    setHint("Tap the glowing door.");
+    return;
+  }
+
   if (page !== 5) {
     setHint("");
     return;
@@ -434,9 +439,9 @@ async function goTo(to) {
 
 function stickerSize(kind) {
   if (phoneBookMode) {
-    if (kind === "rabbit") return 72;
-    if (kind === "cookie" || kind === "peony") return 44;
-    return 60;
+    if (kind === "rabbit") return 84;
+    if (kind === "cookie" || kind === "peony") return 52;
+    return 72;
   }
   if (kind === "rabbit") return isShortScreen() ? 110 : 150;
   if (kind === "cookie" || kind === "peony") return isShortScreen() ? 56 : 84;
@@ -530,7 +535,7 @@ function countKind(kind) {
 function revealSticker(item) {
   if (countKind(item.kind) >= 3) return false;
   const sizes = item.kind === "rabbit"
-    ? (phoneBookMode ? [72, 64, 56] : [stickerSize("rabbit"), 118, 96])
+    ? (phoneBookMode ? [84, 76, 68] : [stickerSize("rabbit"), 118, 96])
     : [stickerSize(item.kind)];
   for (const size of sizes) {
     const spot = pickStickerSpot(size);
